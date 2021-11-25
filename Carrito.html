@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprar</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/carrito.css">
+    <script src="https://kit.fontawesome.com/41bcea2ae3.js" crossorigin="anonymous"></script>
+    <script>
+
+        window.onload = function () {
+            let baseDedatos = [{
+                id: 1,
+                nombre: 'CD-Sony',
+                precio: 3.00,
+                descuento: 15,
+                imagen: 'images/sony_cd.png'
+            }, {
+                id: 2,
+                nombre: 'CD-Acer',
+                precio: 3.00,
+                descuento: 12,
+                imagen: 'images/acer_CD.png'
+            }, {
+                id: 3,
+                nombre: 'CD-Princo',
+                precio: 3.00,
+                descuento: 10,
+                imagen: 'images/princo_cd.jpg'
+            }, {
+                id: 4,
+                nombre: 'CD-IBM',
+                precio: 3.00,
+                descuento: 20,
+                imagen: 'images/ibm_cd.png'
+            }]
+
+            let $items = document.querySelector('#items');
+            let carrito = [];
+            let total = 0;
+            let importeNeto = 0;
+            let montoSony = 0;
+            let montoAcer = 0;
+            let montoPrinco = 0;
+            let montoIBM = 0;
+            let descuento = 0;
+            let desSony = 0; let desAcer = 0; let desPrinco = 0; let desIBM = 0;
+            let $carrito = document.querySelector('#carrito')
+            let $total = document.querySelector('#total');
+            let $importeNeto = document.querySelector('#importeNeto');
+            let $montoSony = document.querySelector('#montoSony');
+            let $montoAcer = document.querySelector('#montoAcer');
+            let $montoPrinco = document.querySelector('#montoPrinco');
+            let $montoIBM = document.querySelector('#montoIBM');
+            let $descuento = document.querySelector('#descuento');
+            function renderItems() {
+                for (let info of baseDedatos) {
+                    let miNodo = document.createElement('div');
+                    miNodo.classList.add('card', 'col-sm-4');
+
+                    let miNodoCardBody = document.createElement('div');
+                    miNodoCardBody.classList.add('card-body');
+
+                    let miNodoTitle = document.createElement('h5');
+                    miNodoTitle.classList.add('card-title');
+                    miNodoTitle.textContent = info['nombre'];
+
+                    let miNodoImagen = document.createElement('img');
+                    miNodoImagen.classList.add('img-fluid');
+                    miNodoImagen.setAttribute('src', info['imagen']);
+
+                    let miNodoPrecio = document.createElement('p');
+                    miNodoPrecio.classList.add('card-text');
+                    miNodoPrecio.textContent = 'Precio: ' + '$' + info['precio'];
+
+                    let miNodoDescuento = document.createElement('p');
+                    miNodoDescuento.classList.add('card-text');
+                    miNodoDescuento.textContent = 'Descuento: ' + info['descuento'] + '%';
+
+                    let miNodoBoton = document.createElement('button');
+                    miNodoBoton.classList.add('btn', 'btn-primary');
+                    miNodoBoton.textContent = '+';
+                    miNodoBoton.setAttribute('marcador', info['id']);
+                    miNodoBoton.addEventListener('click', anyadirCarrito);
+
+                    miNodoCardBody.appendChild(miNodoImagen);
+                    miNodoCardBody.appendChild(miNodoTitle);
+                    miNodoCardBody.appendChild(miNodoPrecio);
+                    miNodoCardBody.appendChild(miNodoDescuento);
+                    miNodoCardBody.appendChild(miNodoBoton);
+                    miNodo.appendChild(miNodoCardBody);
+                    $items.appendChild(miNodo);
+                }
+            }
+
+            function anyadirCarrito() {
+                carrito.push(this.getAttribute('marcador'));
+                calcularTotal();
+                renderizarCarrito();
+            }
+
+            function borrarItemCarrito() {
+                console.log();
+
+                let id = this.getAttribute('item');
+                carrito = carrito.filter(function (carritoId) {
+                    return carritoId !== id;
+                });
+                renderizarCarrito();
+                calcularTotal();
+            }
+
+            function renderizarCarrito() {
+                $carrito.textContent = '';
+
+                let carritoSinDuplicar = [...new Set(carrito)];
+                carritoSinDuplicar.forEach(function (item, indice) {
+                    let miItem = baseDedatos.filter(function (itemBaseDatos) {
+                        return itemBaseDatos['id'] == item;
+                    });
+
+                    let numeroUnidadesItem = carrito.reduce(function (total, itemId) {
+                        return itemId === item ? total += 1 : total;
+                    }, 0);
+
+
+
+                    let miNodo = document.createElement('li');
+                    miNodo.classList.add('list-group-item', 'text-right', 'mx-2');
+                    miNodo.textContent = `No.Unidades: ${numeroUnidadesItem} de ${miItem[0]['nombre']}`;
+
+                    let miBoton = document.createElement('button');
+                    miBoton.classList.add('btn', 'btn-danger', 'mx-5');
+                    miBoton.textContent = 'X';
+                    miBoton.style.marginLeft = '1rem';
+                    miBoton.setAttribute('item', item);
+                    miBoton.addEventListener('click', borrarItemCarrito);
+
+                    miNodo.appendChild(miBoton);
+                    $carrito.appendChild(miNodo);
+                });
+            }
+
+            function calcularTotal() {
+                total = 0;
+                importeNeto = 0;
+                montoSony = 0;
+                montoAcer = 0;
+                montoPrinco = 0;
+                montoIBM = 0;
+                descuento = 0;
+                desSony = 0; desAcer = 0; desPrinco = 0; desIBM = 0;
+                for (let item of carrito) {
+                    let miItem = baseDedatos.filter(function (itemBaseDatos) {
+                        return itemBaseDatos['id'] == item;
+                    });
+                    if (item == '1') {
+                        montoSony = montoSony + miItem[0]['precio'];
+                        desSony = montoSony * (miItem[0]['descuento'] / 100);
+                    }
+                    if (item == '2') {
+                        montoAcer = montoAcer + miItem[0]['precio'];
+                        desAcer = montoAcer * (miItem[0]['descuento'] / 100);
+                    }
+                    if (item == '3') {
+                        montoPrinco = montoPrinco + miItem[0]['precio'];
+                        desPrinco = montoPrinco * (miItem[0]['descuento'] / 100);
+                    }
+                    if (item == '4') {
+                        montoIBM = montoIBM + miItem[0]['precio'];
+                        desIBM = montoIBM * (miItem[0]['descuento'] / 100);
+                    }
+                    total = total + miItem[0]['precio'];
+                }
+
+                descuento = desSony + desAcer + desPrinco + desIBM;
+                let aux = total.toFixed(2) - descuento.toFixed(2);
+                $importeNeto.textContent = total.toFixed(2);
+                $montoSony.textContent = montoSony.toFixed(2);
+                $montoAcer.textContent = montoAcer.toFixed(2);
+                $montoPrinco.textContent = montoPrinco.toFixed(2);
+                $montoIBM.textContent = montoIBM.toFixed(2);
+                $descuento.textContent = descuento.toFixed(2);
+                $total.textContent = aux.toFixed(2);
+            }
+
+            renderItems();
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <main id="items" class="col-sm-7 row"></main>
+            <aside>
+                <h2 class="title"><i class="fas fa-shopping-cart"></i> CARRITO</h2>
+                <ul id="carrito" class="list-group"></ul>
+                <hr>
+                <p class="text-left">Monto por CD-Sony: $<span id="montoSony"></span></p>
+                <p class="text-left">Monto por CD-Acer: $<span id="montoAcer"></span></p>
+                <p class="text-left">Monto por CD-Princo: $<span id="montoPrinco"></span></p>
+                <p class="text-left">Monto por CD-IBM: $<span id="montoIBM"></span></p>
+                <p class="text-left">Importe neto: $<span id="importeNeto"></span></p>
+                <p class="text-left">Descuento: $<span id="descuento"></span></p>
+                <p class="text-left">Importe a pagar: $<span id="total"></span></p>
+                <br>
+                <a href="Index.html" class="select">REGRESAR A INICIO</a>
+            </aside>
+        </div>
+    </div>
+
+    <Footer id="pie">
+        <div class="container__footer">
+
+            <div class="box__footer">
+                <div class="logo">
+                    <img src="Images/LOGO_TECNM_BLANCO.svg" alt="">
+                </div>
+                <div class="terms" style="text-align: justify; font-weight: 100;">
+                    Nuestros productos de presición han de sastifacer las expectativas de nuestros clientes y
+                    proveedores, permitir remunerar adecuadamente a nuestros colaboradores y garantizar, gracias a
+                    nuestro afán de superación.
+                </div>
+            </div>
+
+            <div class="box__footer">
+                <h2>Soluciones</h2>
+                <a href="#">App Desarrollo</a>
+                <a href="#">App Marketing</a>
+                <a href="#">IOS Desarrollo</a>
+                <a href="#">Android Desarrollo</a>
+                <a href="#">Instalaciones TI</a>
+                <a href="#">Administrador TI</a>
+            </div>
+
+
+            <div class="box__footer">
+                <h2>Contacto</h2>
+                <a href="https://www.facebook.com/pfranciscomanuel/"><i class="fab fa-facebook-square"></i>
+                    Facebook</a>
+                <a href="https://www.instagram.com/pfranciscomanuel2019/"><i class="fab fa-instagram-square"></i>
+                    Instagram</a>
+                <a href="#"><i class="fab fa-twitter-square"></i> Twitter</a>
+                <a href="#"><i class="fab fa-google"></i> Gmail</a>
+                <a href="#"><i class="fab fa-telegram"></i> Telegram</a>
+                <a href="#"><i class="fab fa-whatsapp-square"></i> Whatsapp</a>
+            </div>
+        </div>
+
+        <div class="box__copyright">
+            <hr>
+            <p>Todos los derechos reservados © 2021 |<b> Francisco Manuel</b></p>
+        </div>
+    </Footer>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
